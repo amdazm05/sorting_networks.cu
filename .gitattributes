@@ -1,0 +1,6 @@
+*.cpp eof=LF
+*.cu  eof=LF
+*.cuh eof=LF
+*.hpp eof=LF 
+*.tpp eof=LF
+*.cc  eof=LF
