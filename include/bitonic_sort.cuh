@@ -1,6 +1,8 @@
 #ifndef _BITONIC_SORT
 #define _BITONIC_SORT
-#include "../baseLib/cudaBaseLib.cuh"
+
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
 
 // std includes 
 #include <iostream>
@@ -8,17 +10,8 @@
 #include <exception>
 #include <algorithm>
 
-/// @brief  Implements a bitonic sort on window of fixed length
-/// @tparam T 
-/// @tparam window_size                     //This is the size of window that will be required
-/// @param inputArray 
-/// @param current_bitonic_length           // current bitonic window size ... [a1,a2,a3,a4...an] n = cbs
-/// @param compare_dist                     // compare distance is equal to current_bitonic_length/2
-/// @return 
 template<typename T>
-extern __global__ void bitonic_sort(T * inputArray,uint32_t current_bitonic_length,uint32_t compare_dist);
-template<typename T>
-extern void bitonic_sort_wrap(T * inputArray,uint32_t current_bitonic_length,uint32_t compare_dist,std::pair<dim3,dim3> &&dims);
+extern void bitonic_sort_wrap(T * inputArray,uint32_t current_bitonic_length,uint32_t compare_dist,std::pair<dim3,dim3> dims);
 /// @brief 
 /// @tparam T 
 /// @tparam data_length  --> Window is specified from outside
@@ -53,7 +46,8 @@ void BitonicSorter<T,data_length>::sort_gpu(T * start)
         std::size_t compare_dist = current_bitonic_length/2;
         while(compare_dist>0)
         {
-            bitonic_sort_wrap<T>(start,current_bitonic_length,compare_dist,std::pair<dim3,dim3>(gridblocks,blockthreads));
+            bitonic_sort_wrap<T>(start,(uint32_t)current_bitonic_length,
+                (uint32_t)compare_dist,std::pair<dim3,dim3>(gridblocks,blockthreads));
             compare_dist=compare_dist>>1;
         }
     }
