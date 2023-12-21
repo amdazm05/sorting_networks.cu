@@ -21,7 +21,7 @@ int main()
     cudaMemcpy(k_input,data.data(),WINDOW_SIZE*sizeof(float),cudaMemcpyHostToDevice);
     sorter.sort_gpu(k_input);
     cudaMemcpy(data.data(),k_input,WINDOW_SIZE*sizeof(float),cudaMemcpyDeviceToHost);
-    for(std::size_t i;i<data.size();i++)
+    for(std::size_t i=0;i<data.size();i++)
     {
         if(ver_data[i] != data[i])
             throw std::runtime_error("Bitonic Sort has failed");
