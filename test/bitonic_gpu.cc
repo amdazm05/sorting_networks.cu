@@ -1,29 +1,32 @@
 #include <bitonic_sort.cuh>
 #include <array>
 #include <random>
+#define WINDOW_SIZE 4096
 int main()
 {
-    std::array<float,32> data;
+    std::array<float,WINDOW_SIZE> data;
+    std::array<float,WINDOW_SIZE> ver_data;
     std::random_device rd;
     std::mt19937 mt(rd());
     std::uniform_real_distribution<float> dist(-5.f,5.f);
     for(auto & d:data)
     {
         d = dist(mt);
-        std::cout<<d<<" ";
     }
-    std::cout<<std::endl;
-    BitonicSorter<float,32> sorter;
+    ver_data = data;
+    std::sort(ver_data.begin(),ver_data.end());
+    BitonicSorter<float,WINDOW_SIZE> sorter;
     float * k_input;
-    cudaMalloc((void **)&k_input,32*sizeof(float));
-    cudaMemcpy(k_input,data.data(),32*sizeof(float),cudaMemcpyHostToDevice);
+    cudaMalloc((void **)&k_input,WINDOW_SIZE*sizeof(float));
+    cudaMemcpy(k_input,data.data(),WINDOW_SIZE*sizeof(float),cudaMemcpyHostToDevice);
     sorter.sort_gpu(k_input);
-    cudaMemcpy(data.data(),k_input,32*sizeof(float),cudaMemcpyDeviceToHost);
-    for(auto & d:data)
+    cudaMemcpy(data.data(),k_input,WINDOW_SIZE*sizeof(float),cudaMemcpyDeviceToHost);
+    for(std::size_t i;i<data.size();i++)
     {
-        std::cout<<d<<" ";
+        if(ver_data[i] != data[i])
+            throw std::runtime_error("Bitonic Sort has failed");
     }
-    std::cout<<std::endl;
+    std::cout<<"TEST Passed"<<std::endl;
     cudaFree(k_input);
     return 0;
 }
