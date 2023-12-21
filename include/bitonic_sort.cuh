@@ -18,6 +18,7 @@ extern void bitonic_sort_wrap(T * inputArray,uint32_t current_bitonic_length,uin
 template<typename T,size_t data_length>
 class BitonicSorter 
 {   
+    static_assert((data_length & (data_length - 1)) == 0, "Bitonic Sorter ::: data_length must be a power of 2.");
     private:
         std::ptrdiff_t length;
     public:
@@ -37,13 +38,13 @@ class BitonicSorter
 template<typename T,size_t data_length>
 void BitonicSorter<T,data_length>::sort_gpu(T * start)
 {
-    dim3 blockthreads = 32;
+    dim3 blockthreads = data_length;
     dim3 gridblocks = 1;
     for(std::size_t current_bitonic_length = 2
         ;current_bitonic_length<=data_length
         ;current_bitonic_length=current_bitonic_length<<1)
     {
-        std::size_t compare_dist = current_bitonic_length/2;
+        std::size_t compare_dist = current_bitonic_length>>1;
         while(compare_dist>0)
         {
             bitonic_sort_wrap<T>(start,(uint32_t)current_bitonic_length,
