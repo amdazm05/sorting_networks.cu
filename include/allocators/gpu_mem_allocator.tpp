@@ -21,10 +21,12 @@ namespace cuda_mem
             pinned_memory_allocator(pinned_memory_allocator<U> const&) noexcept {}
             [[nodiscard]] T * allocate(size_type n)
             {
-                if (n > std::numeric_limits<std::size_t>::max() / sizeof(value_type))
-                    throw std::bad_array_new_length();
+                size_t max_malloc_size;
+                cudaError_t err = cudaDeviceGetLimit(&max_malloc_size, cudaLimitMallocHeapSize);
+                if (err != cudaSuccess)
+                    throw std::runtime_error{ cudaGetErrorString(err) };
                 T* pinnedMemory = nullptr;
-                cudaError_t err = cudaMallocHost((void**)&pinnedMemory, n * sizeof(value_type));
+                err = cudaMallocHost((void**)&pinnedMemory, n * sizeof(value_type));
                 if(err!=cudaSuccess)
                     throw std::runtime_error { cudaGetErrorString(err) };                
                 return pinnedMemory;
