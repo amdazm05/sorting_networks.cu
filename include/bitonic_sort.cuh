@@ -40,6 +40,7 @@ void BitonicSorter<T,data_length>::sort_gpu(T * start)
 {
     dim3 blockthreads = data_length;
     dim3 gridblocks = 1;
+    #pragma unroll
     for(std::size_t current_bitonic_length = 2
         ;current_bitonic_length<=data_length
         ;current_bitonic_length=current_bitonic_length<<1)
