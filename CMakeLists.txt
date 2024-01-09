@@ -25,8 +25,8 @@ ${CMAKE_SOURCE_DIR}/src/bitonic_sort.cu
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_14)
 
 add_executable(bitonic_gpu_test ${CMAKE_SOURCE_DIR}/test/bitonic_gpu.cc)
-target_compile_features(bitonic_gpu_test PUBLIC cxx_std_17)
+target_compile_features(bitonic_gpu_test PUBLIC cxx_std_20)
 target_link_libraries(bitonic_gpu_test PUBLIC cuda ${PROJECT_NAME})
 add_executable(allocatortest ${CMAKE_SOURCE_DIR}/test/uni_memallocator.cc)
-target_compile_features(allocatortest PUBLIC cxx_std_17)
+target_compile_features(allocatortest PUBLIC cxx_std_20)
 target_link_libraries(allocatortest PUBLIC cuda ${PROJECT_NAME})

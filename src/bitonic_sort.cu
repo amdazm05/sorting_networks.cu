@@ -1,4 +1,5 @@
-#include "bitonic_sort.cuh"
+#include "bitonic_sort_wrappers.cuh"
+
 ///@breif 
 // cbs = is the current bitonic sort 
 // nbs = is the next bitonic sort element interval
@@ -43,8 +44,49 @@ __global__ void bitonic_sort(T * inputArray,uint32_t current_bitonic_length,uint
     }
 }
 
+template<typename T>
+__global__ void bitonic_sortV2(T * inputArray,uint32_t current_bitonic_length,uint32_t compare_dist)  
+{
+    __shared__ T sharedMemArray[8192];
+    int idx = threadIdx.x +blockDim.x * blockIdx.x;
+    int ij  = compare_dist ^ idx;
+    sharedMemArray[ij] = inputArray[ij];
+    sharedMemArray[idx] = inputArray[idx];
+    
+    __syncthreads();
+    if(ij>idx)
+    {
+        if((idx & current_bitonic_length)==0)
+        {
+            if(sharedMemArray[idx]>sharedMemArray[ij])
+            {
+                T temp = sharedMemArray[idx];
+                sharedMemArray[idx] = sharedMemArray[ij];
+                sharedMemArray[ij] = temp;
+            }
+        }
+        else
+        {
+            if(sharedMemArray[idx]<sharedMemArray[ij])
+            {
+                T temp = sharedMemArray[idx];
+                sharedMemArray[idx] = sharedMemArray[ij];
+                sharedMemArray[ij] = temp;
+            }
+        }
+        inputArray[ij] = sharedMemArray[ij];
+        inputArray[idx]  = sharedMemArray[idx] ;
+    }
+}
+
 template<>
 void bitonic_sort_wrap<float>(float* inputArray, uint32_t current_bitonic_length, uint32_t compare_dist, std::pair<dim3, dim3> dims)
 {
     bitonic_sort<<<dims.second,dims.first>>>(inputArray, current_bitonic_length, compare_dist);
+}
+
+template<>
+void bitonic_sort_wrap_shared_mem<float>(float* inputArray, uint32_t current_bitonic_length, uint32_t compare_dist, std::pair<dim3, dim3> dims)
+{
+    bitonic_sortV2<<<dims.second,dims.first>>>(inputArray, current_bitonic_length, compare_dist);
 }

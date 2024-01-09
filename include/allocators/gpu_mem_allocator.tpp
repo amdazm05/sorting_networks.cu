@@ -43,5 +43,41 @@ namespace cuda_mem
     
     template<class T, class U>
     bool operator!=(const pinned_memory_allocator <T>&, const pinned_memory_allocator <U>&) { return false; }
+
+
+    template<typename T>
+    class unified_memory_allocator
+    {
+        public:
+            using size_type  = std::size_t;
+            using value_type = T;
+            using pointer  = T *;
+            unified_memory_allocator() noexcept = default;
+            template <typename U>
+            unified_memory_allocator(unified_memory_allocator<U> const&) noexcept {}
+            [[nodiscard]] T * allocate(size_type n)
+            {
+                // size_t max_malloc_size;
+                // cudaError_t err = cudaDeviceGetLimit(&max_malloc_size, cudaLimitMallocHeapSize);
+                // if (err != cudaSuccess)
+                //     throw std::runtime_error{ cudaGetErrorString(err) };
+                T* unifiedMem = nullptr;
+                err = cudaMallocManaged((void**)&pinnedMemory, n * sizeof(value_type));
+                if(err!=cudaSuccess)
+                    throw std::runtime_error { cudaGetErrorString(err) };                
+                return unifiedMem;
+            }
+            void deallocate(T * unifiedMem,size_type n)
+            {
+                cudaError_t err = cudaFree(unifiedMem);
+                if(err!=cudaSuccess)
+                    throw std::runtime_error { cudaGetErrorString(err) };      
+            }
+    };
+    template<class T, class U>
+    bool operator==(const unified_memory_allocator <T>&, const unified_memory_allocator <U>&) { return true; }
+    
+    template<class T, class U>
+    bool operator!=(const unified_memory_allocator <T>&, const unified_memory_allocator <U>&) { return false; }
 }
 #endif //_GPU_MEM_ALLOC
